@@ -1,0 +1,5 @@
+target/
+build/
+.DS_Store
+*.log
+natives/src/main/resources/libraw-natives/
