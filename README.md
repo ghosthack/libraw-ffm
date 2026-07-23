@@ -65,7 +65,9 @@ and **without** libjpeg, LCMS or RawSpeed. Consequences:
 
 - lossy-JPEG-compressed DNGs are not decodable (`LIBRAW_FILE_UNSUPPORTED`);
   if that class of file matters, a follow-up build can statically absorb
-  libjpeg-turbo;
+  libjpeg-turbo — classic lossy-JPEG DNGs (DNG 1.4) only; JPEG-XL-compressed
+  DNG 1.7 (recent Apple ProRAW) is stubbed in LibRaw 0.22.2 and would need
+  the Adobe DNG SDK, which stays out of scope;
 - embedded JPEG previews are still *extracted* fine (that's byte copying,
   not decoding) — decode them with your JPEG decoder of choice;
 - color management is the caller's job (output is 8/16-bit RGB in the
