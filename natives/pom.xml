@@ -82,6 +82,18 @@
                   </includes>
                 </configuration>
               </execution>
+              <execution>
+                <id>natives-jar-linux</id>
+                <phase>package</phase>
+                <goals><goal>jar</goal></goals>
+                <configuration>
+                  <classesDirectory>src/main/resources</classesDirectory>
+                  <classifier>linux-x64</classifier>
+                  <includes>
+                    <include>libraw-natives/linux-x64/**</include>
+                  </includes>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
         </plugins>

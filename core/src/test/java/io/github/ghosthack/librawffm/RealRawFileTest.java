@@ -35,6 +35,10 @@ class RealRawFileTest {
             int rawW = LibRaw.libraw_get_raw_width(lr);
             int rawH = LibRaw.libraw_get_raw_height(lr);
             assertTrue(rawW > 100 && rawH > 100, "plausible raw dims " + rawW + "x" + rawH);
+            // Visible area: raw_width also counts the masked sensor margins
+            // (e.g. Canon CR2s carry ~40 masked columns), which processed
+            // output never includes.
+            int visW = LibRaw.libraw_get_iwidth(lr);
 
             // Embedded preview, if any: JPEG bytes reachable without a raw decode.
             MemorySegment data = lr.reinterpret(libraw_data_t.sizeof());
@@ -71,7 +75,8 @@ class RealRawFileTest {
                 System.out.printf("processed: %dx%d colors=%d bits=%d%n", w, h,
                         Short.toUnsignedInt(libraw_processed_image_t.colors(pi)),
                         Short.toUnsignedInt(libraw_processed_image_t.bits(pi)));
-                assertTrue(w >= rawW / 2 - 16 && w <= rawW / 2 + 16, "half-size width " + w + " vs raw " + rawW);
+                assertTrue(w >= visW / 2 - 16 && w <= visW / 2 + 16,
+                        "half-size width " + w + " vs visible " + visW + " (raw " + rawW + ")");
             } finally {
                 LibRaw.libraw_dcraw_clear_mem(img);
             }

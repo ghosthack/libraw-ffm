@@ -40,6 +40,36 @@ jobs:
           path: natives/src/main/resources/libraw-natives/macos-arm64/
           if-no-files-found: error
 
+  natives-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 22
+          cache: maven
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y zlib1g-dev patchelf
+
+      - name: Fetch LibRaw source
+        run: |
+          mkdir -p build
+          curl -sfL "https://www.libraw.org/data/LibRaw-${LIBRAW_VERSION}.tar.gz" | tar xz -C build
+
+      - name: Build native
+        run: build-natives/linux-x64.sh
+
+      - name: Test against built native
+        run: mvn -B clean install
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: natives-linux-x64
+          path: natives/src/main/resources/libraw-natives/linux-x64/
+          if-no-files-found: error
+
   natives-windows:
     runs-on: windows-latest
     defaults:
@@ -82,7 +112,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: [natives-macos, natives-windows]
+    needs: [natives-macos, natives-windows, natives-linux]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
@@ -165,10 +195,16 @@ jobs:
           name: natives-windows-x64
           path: natives/src/main/resources/libraw-natives/windows-x64/
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: natives-linux-x64
+          path: natives/src/main/resources/libraw-natives/linux-x64/
+
       - name: Deploy to Maven Central
-        # Tests already ran against the real native on the mac/windows jobs;
-        # this linux runner has no platform native to run them against.
-        run: mvn -B clean deploy -P release,all-natives -DskipTests
+        # Tests already ran against the real native on the platform jobs.
+        # native.classifier pinned: the linux-x64 OS profile would otherwise
+        # flip the default jar execution and drop the macos classifier.
+        run: mvn -B clean deploy -P release,all-natives -Dnative.classifier=macos-arm64 -DskipTests
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
