@@ -17,12 +17,12 @@ two fast paths that matter for browsing:
 <dependency>
   <groupId>io.github.ghosthack</groupId>
   <artifactId>libraw-ffm</artifactId>
-  <version>0.22.2-0.1.0</version>
+  <version>0.22.2-0.2.0</version>
 </dependency>
 <dependency>
   <groupId>io.github.ghosthack</groupId>
   <artifactId>libraw-ffm-natives</artifactId>
-  <version>0.22.2-0.1.0</version>
+  <version>0.22.2-0.2.0</version>
   <classifier>macos-arm64</classifier> <!-- and/or windows-x64 -->
   <scope>runtime</scope>
 </dependency>
