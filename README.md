@@ -17,12 +17,12 @@ two fast paths that matter for browsing:
 <dependency>
   <groupId>io.github.ghosthack</groupId>
   <artifactId>libraw-ffm</artifactId>
-  <version>0.22.2-0.2.0</version>
+  <version>0.22.2-0.2.1</version>
 </dependency>
 <dependency>
   <groupId>io.github.ghosthack</groupId>
   <artifactId>libraw-ffm-natives</artifactId>
-  <version>0.22.2-0.2.0</version>
+  <version>0.22.2-0.2.1</version>
   <classifier>macos-arm64</classifier> <!-- and/or windows-x64 -->
   <scope>runtime</scope>
 </dependency>
@@ -44,7 +44,9 @@ MemorySegment img = LibRaw.libraw_dcraw_make_mem_image(lr, errc);
 // ... libraw_dcraw_clear_mem(img); libraw_close(lr);
 ```
 
-Requires `--enable-native-access=ALL-UNNAMED` (JDK 22+).
+When using the module path, declare `requires libraw.ffm;` and run with
+`--enable-native-access=libraw.ffm`. When using the class path, run with
+`--enable-native-access=ALL-UNNAMED` (JDK 22+).
 
 ## Library resolution
 

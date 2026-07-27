@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.github.ghosthack</groupId>
     <artifactId>libraw-ffm-parent</artifactId>
-    <version>0.22.2-0.2.0</version>
+    <version>0.22.2-0.2.1</version>
   </parent>
 
   <artifactId>libraw-ffm</artifactId>
@@ -46,7 +46,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.2</version>
         <configuration>
-          <argLine>--enable-native-access=ALL-UNNAMED</argLine>
+          <argLine>--enable-native-access=libraw.ffm</argLine>
         </configuration>
       </plugin>
     </plugins>
