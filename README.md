@@ -23,7 +23,7 @@ two fast paths that matter for browsing:
   <groupId>io.github.ghosthack</groupId>
   <artifactId>libraw-ffm-natives</artifactId>
   <version>0.22.2-0.2.1</version>
-  <classifier>macos-arm64</classifier> <!-- and/or windows-x64 -->
+  <classifier>macos-arm64</classifier> <!-- or windows-x64 / linux-x64 -->
   <scope>runtime</scope>
 </dependency>
 ```
@@ -58,7 +58,7 @@ When using the module path, declare `requires libraw.ffm;` and run with
    to `~/.cache/libraw-ffm/<version>-<platform>/`;
 3. already-loaded libraries (loader/default lookup).
 
-Classifier jars exist for **macos-arm64** and **windows-x64**.
+Classifier jars exist for **macos-arm64**, **windows-x64**, and **linux-x64**.
 
 ## Scope
 
@@ -77,14 +77,14 @@ and **without** libjpeg, LCMS or RawSpeed. Consequences:
 
 ## Building
 
-- `build-natives/macos-arm64.sh` / `build-natives/windows-x64.sh` (MSYS2
-  MINGW64) build LibRaw from source (autotools) and stage the shared
-  library under `natives/src/main/resources/libraw-natives/`.
+- `build-natives/macos-arm64.sh`, `build-natives/windows-x64.sh` (MSYS2
+  MINGW64), and `build-natives/linux-x64.sh` build LibRaw from source
+  (autotools) and stage the shared library under
+  `natives/src/main/resources/libraw-natives/`.
 - `jextract/gen-bindings.sh` regenerates the stubs from the built headers and
   re-points the symbol lookup at the runtime loader.
-- Releases publish from GitHub Actions (same flow as
-  [ffmpeg-ffm](https://github.com/ghosthack/ffmpeg-ffm): bump the pom
-  version, push to main).
+- Releases publish from a matching non-prerelease GitHub Release; see
+  [PUBLISHING.md](PUBLISHING.md).
 
 ## Licensing
 

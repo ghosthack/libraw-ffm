@@ -33,7 +33,7 @@
     <connection>scm:git:https://github.com/ghosthack/libraw-ffm.git</connection>
     <developerConnection>scm:git:git@github.com:ghosthack/libraw-ffm.git</developerConnection>
     <url>https://github.com/ghosthack/libraw-ffm</url>
-    <tag>v0.22.2-0.2.1</tag>
+    <tag>v${project.version}</tag>
   </scm>
 
   <modules>
@@ -104,6 +104,7 @@
             <configuration>
               <publishingServerId>central</publishingServerId>
               <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
             </configuration>
           </plugin>
         </plugins>
