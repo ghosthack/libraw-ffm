@@ -93,9 +93,40 @@ public final class LibRawLibs {
             for (String name : manifest) {
                 libs.add(extract(base + name, cacheDir.resolve(name)));
             }
+            if (classifier.startsWith("windows")) {
+                loadWindowsLibraries(cacheDir, manifest);
+            }
             return chain(libs);
         } catch (IOException e) {
             throw new UncheckedIOException("failed to extract bundled libraw native to " + cacheDir, e);
+        }
+    }
+
+    /**
+     * Loads every bundled DLL in manifest order with its dependencies resolved
+     * from the bundle directory, never from {@code PATH} (see
+     * {@link WindowsDllLoader}), so a DLL missing from the bundle fails here on
+     * every machine instead of loading from whatever {@code PATH} holds. A
+     * failure names the DLL, the Windows error, and any bundled name already
+     * loaded in this process from elsewhere.
+     */
+    private static void loadWindowsLibraries(Path dir, List<String> manifest) {
+        WindowsDllLoader loader = new WindowsDllLoader();
+        for (String name : manifest) {
+            int error = loader.load(dir.resolve(name).toAbsolutePath());
+            if (error != 0) {
+                List<String> foreign = new ArrayList<>();
+                for (String other : manifest) {
+                    Path loaded = loader.loadedPath(other);
+                    if (loaded != null && !dir.toAbsolutePath().equals(loaded.toAbsolutePath().getParent())) {
+                        foreign.add(other + " from " + loaded);
+                    }
+                }
+                throw new IllegalStateException("cannot load bundled native " + name + " from " + dir
+                        + ": " + WindowsDllLoader.describe(error)
+                        + (foreign.isEmpty() ? "" : "; already loaded in this process from elsewhere,"
+                                + " and used in place of the bundled copy: " + String.join(", ", foreign)));
+            }
         }
     }
 

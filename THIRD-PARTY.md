@@ -21,5 +21,8 @@ requirement satisfied by construction): point `LIBRAW_FFM_LIBDIR` (or
 `-Dlibrawffm.libdir`) at any directory containing a compatible LibRaw build
 to substitute your own copy.
 
-The macOS build links the operating system's zlib; the Windows build links
-zlib statically from the MSYS2 mingw-w64 distribution (zlib license).
+The macOS build links the operating system's zlib. The Windows build bundles
+DLLs from the MSYS2 mingw-w64 distribution beside LibRaw: `zlib1.dll` (zlib
+license), the GCC runtimes `libgcc_s_seh-1.dll` and `libstdc++-6.dll` (GPLv3
+with the GCC Runtime Library Exception), and `libwinpthread-1.dll`
+(MinGW-w64 winpthreads, MIT-style license).

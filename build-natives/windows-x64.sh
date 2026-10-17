@@ -19,8 +19,9 @@ BUILD="$SRC/build-windows-x64"
 mkdir -p "$BUILD"
 cd "$BUILD"
 
-# Static gcc/stdc++ runtimes; zlib links dynamically (libtool refuses static
-# archives in shared links) and its DLL is staged below.
+# libtool does not pass -static-libgcc/-static-libstdc++ through to the link,
+# so the gcc/stdc++ runtimes stay dynamic, like zlib (libtool refuses static
+# archives in shared links); every such DLL is staged below.
 ../configure \
   --prefix="$PREFIX" \
   --enable-shared --disable-static \
@@ -37,25 +38,36 @@ dll="$(ls "$PREFIX"/bin/libraw_r-*.dll)"
 base="$(basename "$dll")"
 
 : > "$DEST/manifest.txt"
-# mingw runtime DLLs first, if the libraw DLL links them.
-for runtime in zlib1.dll libwinpthread-1.dll libgcc_s_seh-1.dll libstdc++-6.dll; do
-  if [ -f "/mingw64/bin/$runtime" ] \
-     && objdump -p "$dll" | grep -q "DLL Name: $runtime"; then
-    cp "/mingw64/bin/$runtime" "$DEST/$runtime"
-    echo "$runtime" >> "$DEST/manifest.txt"
-  fi
-done
-
 cp "$dll" "$DEST/$base"
-echo "$base" >> "$DEST/manifest.txt"
 
-# No import may resolve outside: staged runtime or Windows itself.
-ALLOWED='libraw_r|zlib1|libwinpthread|libgcc_s_seh|libstdc\+\+|KERNEL32|USER32|ADVAPI32|SHELL32|WS2_32|msvcrt|ntdll|api-ms-'
-for f in "$DEST"/*.dll; do
-  if objdump -p "$f" | awk '/DLL Name:/{print $3}' | grep -viE "^($ALLOWED)"; then
-    echo "ERROR: $f imports from unexpected DLLs (above)"; exit 1
-  fi
-done
+# Stage every DLL the library needs, transitively: a DLL from /mingw64/bin is
+# bundled, one Windows itself provides (System32) is not, anything else is an
+# error. Following imports only one level missed libgcc_s_seh-1.dll's own
+# libwinpthread-1.dll, which then loaded only where some other copy happened
+# to be on PATH (MSYS2, Git for Windows) and failed on a clean machine. The
+# manifest lists each DLL after its dependencies.
+SYSTEM32="$(cygpath -u "${SYSTEMROOT:-C:/Windows}")/System32"
+visited=""
+visit() {
+  case " $visited " in *" $1 "*) return ;; esac
+  visited="$visited $1"
+  for dep in $(objdump -p "$DEST/$1" | awk '/DLL Name:/{print $3}'); do
+    if [ -f "$DEST/$dep" ]; then
+      :
+    elif [ -f "/mingw64/bin/$dep" ]; then
+      cp "/mingw64/bin/$dep" "$DEST/$dep"
+    elif [ -f "$SYSTEM32/$dep" ] || case "$dep" in api-ms-*|API-MS-*) true ;; *) false ;; esac; then
+      continue
+    else
+      echo "ERROR: $1 imports $dep, which is neither in /mingw64/bin nor a Windows DLL"
+      exit 1
+    fi
+    visit "$dep"
+  done
+  echo "$1" >> "$DEST/manifest.txt"
+}
+visit "$base"
+echo "Bundled DLLs, dependencies first:"; sed 's/^/  /' "$DEST/manifest.txt"
 
 cp "$SRC/COPYRIGHT" "$DEST/COPYRIGHT"
 cp "$SRC/LICENSE.LGPL" "$DEST/LICENSE.LGPL"
@@ -64,7 +76,7 @@ cp "$SRC/LICENSE.CDDL" "$DEST/LICENSE.CDDL"
   echo "LibRaw $(sed -n 's/.*LIBRAW_VERSION_STR *"\([^"]*\)".*/\1/p' "$SRC/libraw/libraw_version.h" | head -1) (windows-x64), built from unmodified source with MSYS2 mingw-w64"
   echo "built: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "source: https://www.libraw.org (unmodified)"
-  echo "configure: shared-only, mingw zlib (staged), no lcms/jpeg/examples/openmp, static gcc/stdc++ runtimes"
+  echo "configure: shared-only, mingw zlib (staged), no lcms/jpeg/examples/openmp, mingw gcc/stdc++/winpthread runtimes (staged)"
 } > "$DEST/BUILD-INFO.txt"
 
 echo "Staged $(ls "$DEST" | wc -l) files into $DEST"
