@@ -6,7 +6,7 @@
 
   <groupId>io.github.ghosthack</groupId>
   <artifactId>libraw-ffm-parent</artifactId>
-  <version>0.22.2-0.2.1</version>
+  <version>0.22.2-0.2.2</version>
   <packaging>pom</packaging>
 
   <name>libraw-ffm parent</name>
