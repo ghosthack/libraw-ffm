@@ -29,13 +29,28 @@ Configure these under Settings → Secrets and variables → Actions:
 
 The `io.github.ghosthack` namespace is already verified on Central.
 
+## Maven version
+
+Builds use the Maven Wrapper (`./mvnw`), which pins Maven 3.9.16. Do not
+switch the release to the runner's `mvn`: under Maven 3.10 the
+central-publishing plugin stages resolver files such as
+`_remote.repositories` and `maven-metadata-local.xml` into the bundle, and
+Central rejects it with "Bundle has content that does NOT have a .pom file".
+
+To inspect the signed bundle CI would upload, run the Release workflow
+manually (`gh workflow run release.yml`, optionally with a throwaway
+`version`). It rebuilds all three natives, builds the bundle against an
+unreachable Central URL with placeholder credentials, fails if the bundle
+contains those resolver files, and attaches `central-bundle.zip` as a
+workflow artifact; nothing is published.
+
 ## Recovery and local checks
 
 If a release run fails, fix the underlying issue and rerun the entire workflow
 with `gh run rerun <run-id> -R ghosthack/libraw-ffm`. Rerunning only failed
 jobs can lose access to native artifacts from the previous attempt.
 
-`mvn -Prelease -Dgpg.skip=true clean verify` checks sources, javadocs, and
+`./mvnw -Prelease -Dgpg.skip=true clean verify` checks sources, javadocs, and
 packaging locally without publishing. Releases are immutable: publish changed
 content under a new version rather than rebuilding an existing version.
 
